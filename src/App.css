@@ -1,5 +1,7 @@
 .App {
   text-align: center;
+  background:  radial-gradient(circle, rgba(0,0,0,1) 13%, rgba(255,235,0,1) 21%, rgba(255,0,0,0.7848389355742297) 84%);
+  /* background-image: url('https://img.freepik.com/premium-vector/abstract-seamless-pattern-small-squares-various-sizes-pixels-black-colors_444390-7713.jpg'); */
 }
 
 .App-logo {
@@ -36,3 +38,20 @@
     transform: rotate(360deg);
   }
 }
+
+::selection {
+  background: transparent;
+}
+
+/* For Mozilla Firefox */
+::-moz-selection {
+  background: transparent;
+}
+
+img {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  user-select: none;
+}
+
+

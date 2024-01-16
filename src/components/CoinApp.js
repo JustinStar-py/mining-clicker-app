@@ -9,18 +9,20 @@ const theme = createTheme();
 
 // Styled components for the gold buttons
 const GoldButton = styled(Button)({
-  backgroundColor: 'gold',
+  backgroundColor: 'darkorange',
   borderRadius: 15,
   margin: '0 10px',
-  width: `${isDesktop ? '20vw' : '45vw'}`,
+  width: `${isDesktop ? '20vw' : '40vw'}`,
   padding: '10px 20px',
+  fontFamily: 'avenir',
+  fontWeight: 800,
   '&:hover': {
-    backgroundColor: 'goldenrod',
+    backgroundColor: 'gold',
   },
 });
 
 const CoinLogo = styled(Box)({
-    width: '40vw',
+    width: '30vw',
     [theme.breakpoints.down('md')]: {
         width: '90vw',
     }
@@ -28,14 +30,22 @@ const CoinLogo = styled(Box)({
 
 // keyframes for animation
 const expand = keyframes`
-   from, to { width: ${isDesktop ? '40vw' : '90vw'}; }
-   50% { width: ${isDesktop ? '35vw' : '84vw'}; }
+   from, to { width: ${isDesktop ? '30vw' : '90vw'}; }
+   50% { width: ${isDesktop ? '27vw' : '84vw'}; }
+`;
+
+const fontSizeAnim = keyframes`
+   from, to { font-size: ${isDesktop ? '20px' : '15px'}; }
+   50% { font-size: ${isDesktop ? '20px' : '12px'}; }
 `;
 
 export default function CoinApp() {
   const [open, setOpen] = useState(false);
   const [address, setAddress] = useState('');
-  const [animation, setAnimation] = useState('');
+  const [expandAnimation, setExpandAnimation] = useState('');
+  const [fontSizeAnimation, setFontSizeAnimation] = useState('');
+  const [coinCount, setCoinCount] = useState(0);
+  const [audio] = useState(new Audio('https://assets.mixkit.co/active_storage/sfx/216/216.wav'));
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -44,13 +54,15 @@ export default function CoinApp() {
   const handleAddressChange = (event) => setAddress(event.target.value);
 
   const handleCoinClick = () => {
-    // Set animation
-    setAnimation(`${expand} 0.1s ease`);
-    
-    // Remove animation to be able to trigger it again on next click
+    setCoinCount(coinCount + 1);
+    setExpandAnimation(`${expand} 0.3s ease`);
+    setFontSizeAnimation(`${fontSizeAnim} 0.2s ease`);
+    audio.play();
+
     setTimeout(() => {
-      setAnimation('');
-    }, 1000); // This should match the duration of your animation
+      setExpandAnimation('');
+      setFontSizeAnimation('');
+    }, 500); // This should match the duration of your animation
   };
 
 
@@ -65,19 +77,20 @@ export default function CoinApp() {
         p: 1,
       }}
     >
-      {/* Coin Balance */}
-      <Typography variant="h5" component="p" sx={{ mt: 4 }}>
-        Your Balance: 123 SHIB
-      </Typography>
+     
+     <div style={{display: 'flex',margin: '10px', flexDirection: 'column', alignItems: 'center', background: 'rgb(0 0 0 / 21%)', color: 'white', padding: '10px', backdropFilter: 'blur(10px)', borderRadius: '20px', width: `${isDesktop ? '30vw' : '90vw'}`}}>
+       <Typography variant="h4" component="p" sx={{padding: '10px', fontWeight: '800', fontFamily: 'avenir', animation: fontSizeAnimation}}>
+           {coinCount} Coin
+       </Typography>
+     </div>
 
-      {/* Coin Logo */}
       <CoinLogo
         component="img"
         src="https://cdn3d.iconscout.com/3d/premium/thumb/shiba-inu-4984835-4159433.png"
         alt="Coin Logo"
         onClick={handleCoinClick}
         sx={{
-            animation: animation,
+            animation: expandAnimation,
             "&:hover": {
               cursor: 'pointer',
             }
