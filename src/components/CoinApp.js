@@ -3,6 +3,7 @@ import { Box, Button, Modal, Typography, TextField } from '@mui/material';
 import { styled } from '@mui/system';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { keyframes } from '@emotion/react';
+import logo from '../images/Logo.png';
 
 const isDesktop = window.innerWidth > 1000;
 const theme = createTheme();
@@ -39,12 +40,24 @@ const fontSizeAnim = keyframes`
    50% { font-size: ${isDesktop ? '20px' : '12px'}; }
 `;
 
+const floatUpAndFadeOut = keyframes`
+  0% {
+    transform: translateY(0px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+`;
+
 export default function CoinApp() {
   const [open, setOpen] = useState(false);
   const [address, setAddress] = useState('');
   const [expandAnimation, setExpandAnimation] = useState('');
   const [fontSizeAnimation, setFontSizeAnimation] = useState('');
   const [coinCount, setCoinCount] = useState(0);
+  const [textPoints, setTextPoints] = useState([]); 
   const [audio] = useState(new Audio('https://assets.mixkit.co/active_storage/sfx/216/216.wav'));
 
   const handleOpen = () => setOpen(true);
@@ -53,18 +66,28 @@ export default function CoinApp() {
   // Handle the change of the address input
   const handleAddressChange = (event) => setAddress(event.target.value);
 
-  const handleCoinClick = () => {
+  const handleCoinClick = (event) => {
     setCoinCount(coinCount + 1);
-    setExpandAnimation(`${expand} 0.3s ease`);
+    setExpandAnimation(`${expand} 0.1s ease`);
     setFontSizeAnimation(`${fontSizeAnim} 0.2s ease`);
     audio.play();
+
+    const x = event.clientX;
+    const y = event.clientY;
+
+    // create a new point element
+    setTextPoints([...textPoints, { x, y, id: Date.now() }]); // using the current timestamp for a unique ID
 
     setTimeout(() => {
       setExpandAnimation('');
       setFontSizeAnimation('');
-    }, 500); // This should match the duration of your animation
+    }, 200); // This should match the duration of your animation
   };
 
+    // remove a point after animation is done
+    const removePoint = (id) => {
+      setTextPoints(textPoints.filter(point => point.id !== id));
+    };
 
   return (
     <Box
@@ -86,9 +109,10 @@ export default function CoinApp() {
 
       <CoinLogo
         component="img"
-        src="https://cdn3d.iconscout.com/3d/premium/thumb/shiba-inu-4984835-4159433.png"
+        src={logo}
         alt="Coin Logo"
         onClick={handleCoinClick}
+        // className="animated-logo"
         sx={{
             animation: expandAnimation,
             "&:hover": {
@@ -96,6 +120,23 @@ export default function CoinApp() {
             }
           }}
       />
+
+     {textPoints.map((point) => (
+        <Box
+          key={point.id}
+          sx={{
+            position: 'absolute',
+            left: point.x - 10,
+            top: point.y - 20,
+            animation: `${floatUpAndFadeOut} 1s ease forwards`, // forwards keeps the end state after animation completes
+            fontSize: `${isDesktop ? '40px' : '35px'}`,
+            fontFamily: 'avenir',
+          }}
+          onAnimationEnd={() => removePoint(point.id)} // remove element after animation
+        >
+          +1
+        </Box>
+      ))}
 
       {/* Buttons */}
       <Box sx={{ mb: 4 }}>

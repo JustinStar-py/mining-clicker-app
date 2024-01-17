@@ -1,16 +1,11 @@
 .App {
   text-align: center;
-  background:  radial-gradient(circle, rgba(0,0,0,1) 13%, rgba(255,235,0,1) 21%, rgba(255,0,0,0.7848389355742297) 84%);
+  background: radial-gradient(circle, rgba(60,0,0,1) 0%, rgba(0,118,255,1) 100%);
   /* background-image: url('https://img.freepik.com/premium-vector/abstract-seamless-pattern-small-squares-various-sizes-pixels-black-colors_444390-7713.jpg'); */
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
 @media (prefers-reduced-motion: no-preference) {
-  .App-logo {
+  .animated-logo {
     animation: App-logo-spin infinite 20s linear;
   }
 }
