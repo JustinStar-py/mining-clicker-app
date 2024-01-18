@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { Telegraf, Markup } = require('telegraf');
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
+const bot = new Telegraf(process.env.REACT_APP_BOT_TOKEN);
 
 bot.start((ctx) => {
   ctx.reply('Welcome! Click the button below to open the mini app.', Markup.inlineKeyboard([
