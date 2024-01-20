@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Button, Modal, Typography, TextField, Avatar } from '@mui/material';
 import { styled } from '@mui/system';
 import { CssBaseline, ThemeProvider, createTheme, LinearProgress } from '@mui/material';
 import { keyframes } from '@emotion/react';
 import logo from '../images/Logo.png';
+import coin from '../images/Coin.png';
+import coin2 from '../images/Coin2.png';
 import MyProgress from './Progress';
 
 const isDesktop = window.innerWidth > 1000;
@@ -24,18 +26,18 @@ const GoldButton = styled(Button)({
 });
 
 const CoinLogo = styled(Box)({
-    width: '20vw',
+    width: '30vw',
     marginBottom: '35px',
     [theme.breakpoints.down('md')]: {
-        width: '60vw',
+        width: '70vw',
         marginBottom: '35px',
     },
 });
 
 // keyframes for animation
 const expand = keyframes`
-   from, to { width: ${isDesktop ? '30vw' : '90vw'}; }
-   50% { width: ${isDesktop ? '27vw' : '84vw'}; }
+   from, to { width: ${isDesktop ? '30vw' : '80vw'}; }
+   50% { width: ${isDesktop ? '27vw' : '74vw'}; }
 `;
 
 const fontSizeAnim = keyframes`
@@ -65,9 +67,28 @@ export default function CoinApp(props) {
   const [audio] = useState(new Audio('https://assets.mixkit.co/active_storage/sfx/216/216.wav'));
   const [miningInfo, setMiningInfo] = useState({
     status: 'idle',
-    perClick: 1,
-    limit: 20
+    perClick: 10,
+    limit: 2000 , 
+    max: 2000, 
   });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMiningInfo(prevMiningInfo => {
+        // Only increase limit if it's below the max
+        if (prevMiningInfo.limit < prevMiningInfo.max) {
+          return {...prevMiningInfo, limit: prevMiningInfo.limit + 1};
+        } else {
+          // Otherwise, keep the previous state unchanged
+          clearInterval(interval); // If limit reached max, clear the interval to stop it
+          return prevMiningInfo;
+        }
+      });
+    }, 1000);
+  
+    return () => clearInterval(interval);
+  }, [miningInfo.limit]); 
+  
   
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -78,7 +99,7 @@ export default function CoinApp(props) {
   const handleCoinClick = (event) => {
     if (miningInfo.limit !== 0) {
         setCoinCount(coinCount + miningInfo.perClick);
-        setMiningInfo({ ...miningInfo, limit: miningInfo.limit - 1, status: 'mining' });
+        setMiningInfo({ ...miningInfo, limit: miningInfo.limit - miningInfo.perClick, status: 'mining' });
         setExpandAnimation(`${expand} 0.1s ease`);
         setFontSizeAnimation(`${fontSizeAnim} 0.1s ease`);
         audio.play();
@@ -94,11 +115,18 @@ export default function CoinApp(props) {
           setFontSizeAnimation('');
         }, 200); // This should match the duration of your animation
       } else {
-        setMiningInfo({ ...miningInfo, status: 'idle' });
-        // telApp.showAlert('Mining limit reached. Please try again later.')
+        setMiningInfo({ ...miningInfo, status: 'stop' });
+        if (window.Telegram.WebApp) {
+          window.Telegram.WebApp.showAlert('Mining limit reached. Please try again later.');
+        }
         // alert('Mining limit reached. Please try again later.');
       }
-    };
+  };
+
+  const handleWithdrawTokens = () => {
+    alert('Withdraw tokens');
+     window.Telegram.WebApp.sendData("/withdraw");
+  }
 
     // remove a point after animation is done
    const removePoint = (id) => {
@@ -155,13 +183,13 @@ export default function CoinApp(props) {
   </Typography>
 </Box>
 
-     <Typography component="p" sx={{fontWeight: '800', fontFamily: 'avenir', position: 'absolute', top: '20%', left: '45vw', color: 'aliceblue', animation: fontSizeAnimation, fontSize: `${isDesktop ? '22px' : '25px'}`}}>
+     <Typography component="p" sx={{fontWeight: '800', fontFamily: 'avenir', position: 'absolute', top: '20%', left: `${coinCount > 9 ? coinCount > 99 ? coinCount > 999 ? coinCount > 9999 ? coinCount > 99999 ? coinCount > 999999 ? coinCount > 9999999 ? '36vw' : '37.5vw' : '40vw' : '42vw' : '44vw' : '46vw' : '47vw' : '48.5vw'}`, color: 'aliceblue', animation: fontSizeAnimation, fontSize: `${isDesktop ? '22px' : '25px'}`}}>
            {coinCount}
       </Typography>
  
       <CoinLogo
         component="img"
-        src={logo}
+        src={coin}
         alt="Coin Logo"
         onClick={handleCoinClick}
         // className="animated-logo"
@@ -191,12 +219,26 @@ export default function CoinApp(props) {
         </Box>
       ))}
      
-     <p style={{position: 'absolute', top: '76%', left: '10vw', color: 'aliceblue', animation: fontSizeAnimation, fontSize: `${isDesktop ? '15px' : '10px'}`}}>{miningInfo.limit}</p>
-      <LinearProgress color={`${coinCount >= 6000 ? 'error' : 'warning'}`} sx={{ width: `${isDesktop ? '30vw' : '90vw'}`, height: `${isDesktop ? '1.5vh' : '4vh'}`, position: 'absolute', top: '82%', borderRadius: '10px'}} variant="determinate" value={(coinCount / 20) * 100} />
+     <p style={{position: 'absolute', top: '76%', left: '10vw', color: 'aliceblue', animation: fontSizeAnimation, fontSize: `${isDesktop ? '15px' : '10px'}`}}>{miningInfo.limit} / {miningInfo.max}</p>
+      <LinearProgress 
+         variant="buffer" 
+         color={`${miningInfo.limit >= miningInfo.max ? 'error' : 'warning'}`} 
+         sx={{ 
+          width: `${isDesktop ? '30vw' : '90vw'}`, 
+          height: `${isDesktop ? '1.5vh' : '4vh'}`, 
+          position: 'absolute', 
+          top: '82%', 
+          borderRadius: '10px',   
+          "& .MuiLinearProgress-dashed": { 
+             right: '0px',
+          }}} 
+          value={(miningInfo.limit / miningInfo.max) * 100} 
+          valueBuffer={(Math.random() * 10) + (miningInfo.limit / miningInfo.max) * 100} 
+      />
 
       {/* Buttons */}
       <Box sx={{ mb: 4 }}>
-        <GoldButton variant="contained" onClick={handleOpen}>
+        <GoldButton variant="contained" onClick={handleWithdrawTokens}>
           Withdraw
         </GoldButton>
         <GoldButton variant="contained">

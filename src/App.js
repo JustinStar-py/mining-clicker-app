@@ -4,9 +4,10 @@ import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { db } from './db/database';
 import { ref, set } from "firebase/database";
+import axios from 'axios';
 import env from "react-dotenv";
 import './App.css';
-import axios from 'axios';
+import './css/customStyle.css';
 
 const theme = createTheme();
 const telApp = window.Telegram.WebApp;
