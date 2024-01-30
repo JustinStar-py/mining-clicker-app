@@ -29,7 +29,7 @@ const CoinLogo = styled(Box)({
     width: '30vw',
     marginBottom: '35px',
     [theme.breakpoints.down('md')]: {
-        width: '70vw',
+        width: '75vw',
         marginBottom: '35px',
     },
 });
