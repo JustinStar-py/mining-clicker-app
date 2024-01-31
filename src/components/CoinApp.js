@@ -5,7 +5,6 @@ import { CssBaseline, ThemeProvider, createTheme, LinearProgress } from '@mui/ma
 import { keyframes } from '@emotion/react';
 import logo from '../images/Logo.png';
 import coin from '../images/Coin.png';
-import coin2 from '../images/Coin2.png';
 import MyProgress from './Progress';
 
 const isDesktop = window.innerWidth > 1000;
@@ -28,8 +27,9 @@ const GoldButton = styled(Button)({
 const CoinLogo = styled(Box)({
     width: '30vw',
     marginBottom: '35px',
+    filter: 'hue-rotate(12deg) drop-shadow(0px 0px 22px #0152AC)',
     [theme.breakpoints.down('md')]: {
-        width: '75vw',
+        width: '70vw',
         marginBottom: '35px',
     },
 });
@@ -219,7 +219,11 @@ export default function CoinApp(props) {
         </Box>
       ))}
      
-     <p style={{position: 'absolute', top: '76%', left: '10vw', color: 'aliceblue', animation: fontSizeAnimation, fontSize: `${isDesktop ? '15px' : '10px'}`}}>{miningInfo.limit} / {miningInfo.max}</p>
+     <p style={{position: 'absolute', top: '74%', left: '5vw', color: 'aliceblue', animation: fontSizeAnimation, fontFamily: "avenir", fontSize: `${isDesktop ? '18px' : '13px'}`}}>
+         <img style={{verticalAlign:'bottom'}} width="30" height="30" src="https://img.icons8.com/fluency/48/flash-on.png" alt="flash-on"/>
+          <span style={{fontSize: `${isDesktop ? '25px' : '20px'}`}}> {miningInfo.limit} </span> / {miningInfo.max}
+      </p>
+
       <LinearProgress 
          variant="buffer" 
          color={`${miningInfo.limit >= miningInfo.max ? 'error' : 'warning'}`} 
