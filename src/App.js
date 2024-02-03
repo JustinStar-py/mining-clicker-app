@@ -15,6 +15,13 @@ const telApp = window.Telegram.WebApp;
 function App() {
   const [userData, setUserData] = useState([])
   const [profileUrl, setProfileUrl] = useState(null)
+  const [pointCount, setPointCount] = useState(0);
+  const [miningInfo, setMiningInfo] = useState({
+    status: 'idle',
+    perClick: 2,
+    limit: 2000 , 
+    max: 2000, 
+  });
 
   useEffect(() => {
     telApp.ready()
@@ -23,6 +30,8 @@ function App() {
 
   useEffect (() => {
     getUserProfile()
+    handleSignUp();
+    handleMiningInfo();
   }, [userData])
 
   const init = () => {
@@ -47,35 +56,66 @@ function App() {
   }
 
   const getUserProfile = async () => {
-    const getFileId = await axios.get(`https://api.telegram.org/bot6005370164:AAHcjyIpW-1wXabgPhz-9SIHwJjYwdQiTSE/getUserProfilePhotos?user_id=${userData.id}`, {
+    const getFileId = await axios.get(`https://api.telegram.org/bot${process.env.REACT_APP_BOT_TOKEN}/getUserProfilePhotos?user_id=${userData.id}`, {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       }
     })
     const fileId = getFileId.data.result.photos[0][2].file_id
-    
     const getFilePath = await axios.get(`https://api.telegram.org/bot${process.env.REACT_APP_BOT_TOKEN}/getFile?file_id=${fileId}`, {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       }
     })
-   const filePath = getFilePath.data.result.file_path
+    const filePath = getFilePath.data.result.file_path;
+
    setProfileUrl(`https://api.telegram.org/file/bot${process.env.REACT_APP_BOT_TOKEN}/${filePath}`)
   }
   
-  function writeUserData(userId, coinNumbers) {
-    set(ref(db, 'users/' + userId), {
-      username: userId,
-      coin_numbers : coinNumbers
-    });
+  const handleMiningInfo = () => {
+    if (typeof userData.id === 'undefined') return null;
+    // get user data by api and change limit 
+    axios.get(`http://127.0.0.1:4000/user/${userData.id}`)
+      .then((response) => {
+        console.log(response)
+        if (response.data && 'points' in response.data) {
+            setPointCount(response.data.points) 
+          }
+        if (response.data && 'limit' in response.data) {
+          console.log(response.data.limit)
+          setMiningInfo(prevMiningInfo => {
+              return {...prevMiningInfo, limit: response.data.limit};
+          });
+        }
+      })
+      .catch((error) => console.error('Mining error:', error));
   }
+
+  const handleSignUp = () => {
+    if (typeof userData.id === 'undefined') return null;
+    axios.post('http://127.0.0.1:4000/signup', { userId: userData.id })
+      .then((response) => {
+        console.log('Signup was success:', response.data);
+      })
+      .catch((error) => console.error('Signup error:', error));
+  };
+
   // change background color of telegram mini app
   return (
     <div className="App">
        <ThemeProvider theme={theme}>
-          <CoinApp userData={userData} profileUrl={profileUrl} telApp={telApp}/>
+          <CoinApp 
+             userData={userData} 
+             profileUrl={profileUrl} 
+             telApp={telApp} 
+             userId={userData.id} 
+             pointCount={pointCount} 
+             setPointCount={setPointCount} 
+             miningInfo={miningInfo} 
+             setMiningInfo={setMiningInfo}
+             />
        </ThemeProvider>
     </div>
   );

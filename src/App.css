@@ -1,6 +1,6 @@
 .App {
   text-align: center;
-  background: hue-rotate(12deg) drop-shadow(0px 0px 25px #0152AC);
+  background: radial-gradient(circle, rgba(0,0,0,1) 25%, rgb(0 74 131) 100%);
   /* background-image: url('https://img.freepik.com/premium-vector/abstract-seamless-pattern-small-squares-various-sizes-pixels-black-colors_444390-7713.jpg'); */
 }
 
