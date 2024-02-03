@@ -1,8 +1,9 @@
 {
   "files": {
     "main.css": "/mining-mini-app/static/css/main.f3500eb5.css",
-    "main.js": "/mining-mini-app/static/js/main.f6be2c8c.js",
+    "main.js": "/mining-mini-app/static/js/main.04ec9c1a.js",
     "static/js/787.cdf1702a.chunk.js": "/mining-mini-app/static/js/787.cdf1702a.chunk.js",
+    "static/media/Pizza.png": "/mining-mini-app/static/media/Pizza.d152a510bd885582885b.png",
     "static/media/Coin.png": "/mining-mini-app/static/media/Coin.83aa87c882d62345575c.png",
     "static/media/Avenir-Black.ttf": "/mining-mini-app/static/media/Avenir-Black.561c15d61811bd9cc0a9.ttf",
     "static/media/Logo.png": "/mining-mini-app/static/media/Logo.60fba04bec46194262d7.png",
@@ -10,11 +11,11 @@
     "static/media/logo.svg": "/mining-mini-app/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
     "index.html": "/mining-mini-app/index.html",
     "main.f3500eb5.css.map": "/mining-mini-app/static/css/main.f3500eb5.css.map",
-    "main.f6be2c8c.js.map": "/mining-mini-app/static/js/main.f6be2c8c.js.map",
+    "main.04ec9c1a.js.map": "/mining-mini-app/static/js/main.04ec9c1a.js.map",
     "787.cdf1702a.chunk.js.map": "/mining-mini-app/static/js/787.cdf1702a.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.f3500eb5.css",
-    "static/js/main.f6be2c8c.js"
+    "static/js/main.04ec9c1a.js"
   ]
 }
