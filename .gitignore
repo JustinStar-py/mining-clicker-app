@@ -12,7 +12,8 @@
 
 # production
 /build
-/server
+/server/.env
+/server/adminsdk-firebase.json
 
 # misc
 .DS_Store

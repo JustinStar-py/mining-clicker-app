@@ -5,9 +5,14 @@ import { CssBaseline, ThemeProvider, createTheme, LinearProgress } from '@mui/ma
 import SkinsModal from './Skins';
 import { keyframes } from '@emotion/react';
 import logo from '../images/Logo.png';
-import defaultCoin from '../images/Coin.png';
 import MyProgress from './Progress';
 import axios from 'axios';
+
+// import images of skins
+import pizzaCoin from '../images/Pizza.png';
+import defaultCoin from '../images/Coin.png';
+import saucepanCoin from '../images/Saucepan.png';
+import samuraiCoin from '../images/Samurai.png';
 
 const isDesktop = window.innerWidth > 1000;
 const theme = createTheme();
@@ -20,6 +25,8 @@ const GoldButton = styled(Button)({
   width: `${isDesktop ? '20vw' : '40vw'}`,
   padding: '10px 20px',
   fontFamily: 'avenir',
+  fontSize: '18px',
+  textTransform: 'Capitalize',
   fontWeight: 800,
   '&:hover': {
     backgroundColor: 'gold',
@@ -29,7 +36,6 @@ const GoldButton = styled(Button)({
 const CoinLogo = styled(Box)({
     width: '35vw',
     marginBottom: '35px',
-    filter: 'drop-shadow(0px 0px 25px #0152AC)',
     // filter: 'hue-rotate(12deg) drop-shadow(0px 0px 25px #0152AC)',
     [theme.breakpoints.down('md')]: {
         width: '67vw',
@@ -69,7 +75,8 @@ export default function CoinApp(props) {
   const [textPoints, setTextPoints] = useState([]); 
   const [userAddress, setUserAddress] = useState('');
   const [userSkins, setUserSkins] = useState([]);
-  const [userCurrentSkin, setUserCurrentSkin] = useState();
+  const [userCurrentSkinID, setUserCurrentSkinID] = useState();
+  const [userCurrentSkinImage, setUserCurrentSkinImage] = useState();
   const [audio] = useState(new Audio('https://assets.mixkit.co/active_storage/sfx/216/216.wav'));
 
   useEffect(() => {
@@ -112,17 +119,34 @@ export default function CoinApp(props) {
       await axios.get(`http://localhost:4000/user/${userId}`)
       .then(response => {
         setUserSkins(response.data.skins);
-        setUserCurrentSkin(response.data.skinID);
-        console.log('User current skin:', response.data.skinID);
-        // Additional code to handle the response...
-      })
+        const userCurrentSkinID = response.data.skinID;
+        setUserCurrentSkinID(userCurrentSkinID);
+        // set user images
+        switch (userCurrentSkinID) {
+          case 1:
+            setUserCurrentSkinImage(defaultCoin);
+            break;
+          case 2:
+            setUserCurrentSkinImage(saucepanCoin);
+            break;
+          case 3:
+            setUserCurrentSkinImage(samuraiCoin);
+            break;
+          case 4:
+            setUserCurrentSkinImage(pizzaCoin);
+            break;
+          default:
+            setUserCurrentSkinImage(defaultCoin);
+
+        }
+       })
       .catch(error => {
         console.error('Error getting skins:', error);
         // Additional code to handle the error...
       });
     }
     req()
-  },[pointCount] )
+  },[pointCount, openSkins] )
 
   const handleOpen = () => setOpenWithdraw(true);
   const handleClose = () => setOpenWithdraw(false);
@@ -190,6 +214,32 @@ export default function CoinApp(props) {
         setTextPoints(textPoints.filter(point => point.id !== id));
   };
 
+  const getPointLeftPosition = (pointCount) => {
+    if (pointCount > 9999999) return '35vw';
+    if (pointCount > 999999) return '36.5vw';
+    if (pointCount > 99999) return '39vw';
+    if (pointCount > 9999) return '41vw';
+    if (pointCount > 999) return '43vw';
+    if (pointCount > 99) return '45vw';
+    if (pointCount > 9) return '46vw';
+    return '47.5vw';
+  }
+
+  const getCoinSkinShadow = (userCurrentSkinID) => {
+    switch (userCurrentSkinID) {
+      case 1:
+        return '0px 0px 45px #0152AC';
+      case 2:
+        return '0px 0px 45px #FAE088';
+      case 3:
+        return '0px 0px 45px #BEBFAD';
+      case 4:
+        return '0px 0px 45px skyblue';
+      default:
+        return '0px 0px 45px #0152AC';
+    }
+  }
+
   return (
     <Box sx={{height: '100vh',display: 'flex',flexDirection: 'column',justifyContent: 'space-between',alignItems: 'center',p: 1,}} >
       <Box sx={{display: 'flex',alignItems: 'center',justifyContent: 'center',margin: '10px',background: 'rgba(0,0,0,0.21)',color: 'white',padding: '10px',backdropFilter: 'blur(10px)',borderRadius: '20px',width: `${isDesktop ? '30vw' : '90vw'}`,height: `${isDesktop ? '6.5vw' : '10vh'}`}}>
@@ -199,11 +249,11 @@ export default function CoinApp(props) {
         </Typography>
      </Box>
 
-     <Typography component="p" sx={{fontWeight: '800', fontFamily: 'avenir', position: 'absolute', top: '20%', left: `${pointCount > 9 ? pointCount > 99 ? pointCount > 999 ? pointCount > 9999 ? pointCount > 99999 ? pointCount > 999999 ? pointCount > 9999999 ? '36vw' : '37.5vw' : '40vw' : '42vw' : '44vw' : '46vw' : '47vw' : '48.5vw'}`, color: 'aliceblue', animation: fontSizeAnimation, fontSize: `${isDesktop ? '22px' : '25px'}`}}>
+     <Typography component="p" sx={{fontWeight: '800', fontFamily: 'avenir', position: 'absolute', top: '20%', left: getPointLeftPosition(pointCount), color: 'aliceblue', animation: fontSizeAnimation, fontSize: `${isDesktop ? '22px' : '25px'}`}}>
            {pointCount}
       </Typography>
  
-      <CoinLogo component="img" src={defaultCoin} alt="Coin Logo" onClick={handleCoinClick} sx={{animation: expandAnimation,"&:hover": {  cursor: 'pointer',}}} />
+      <CoinLogo component="img" src={userCurrentSkinImage} alt="Coin Logo" onClick={handleCoinClick} sx={{animation: expandAnimation,"&:hover": {  cursor: 'pointer',}, filter: `drop-shadow(${getCoinSkinShadow(userCurrentSkinID)})`}} />
 
       {textPoints.map((point) => (
           <Box
@@ -249,10 +299,10 @@ export default function CoinApp(props) {
       {/* Buttons */}
       <Box sx={{ mb: 4 }}>
         <GoldButton variant="contained" onClick={handleWithdrawClick}>
-           Withdraw <img style={{verticalAlign:'middle', marginLeft: '5px'}} width="28" height="30" src="https://img.icons8.com/external-flat-berkahicon/64/external-Cash-Out-market-analytics-flat-berkahicon.png" alt="external-Cash-Out-market-analytics-flat-berkahicon"/>
+           Withdraw <img style={{verticalAlign:'middle', marginLeft: '5px'}} width="25" height="25" src="https://img.icons8.com/external-flat-berkahicon/64/external-Cash-Out-market-analytics-flat-berkahicon.png" alt="external-Cash-Out-market-analytics-flat-berkahicon"/>
         </GoldButton>
         <GoldButton variant="contained" onClick={() => setOpenSkins(true)}>
-           Skins <img style={{verticalAlign:'middle', marginLeft: '5px'}} width="28" height="30" src="https://img.icons8.com/fluency/48/paint-palette.png" alt="paint-palette"/>
+           Skins <img style={{verticalAlign:'middle', marginLeft: '5px'}} width="25" height="25" src="https://img.icons8.com/fluency/48/paint-palette.png" alt="paint-palette"/>
         </GoldButton>
       </Box>
 
@@ -301,7 +351,7 @@ export default function CoinApp(props) {
       </Modal>
 
      {/* Skins Modal */}
-      <SkinsModal open={openSkins} handleClose={() => setOpenSkins(false)} userData={userData} userSkins={userSkins} userCurrentSkin={userCurrentSkin} />
+      <SkinsModal open={openSkins} handleClose={() => setOpenSkins(false)} userData={userData} userSkins={userSkins} userCurrentSkin={userCurrentSkinID} />
     </Box>
   );
 }

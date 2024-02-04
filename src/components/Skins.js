@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Modal, Backdrop, Fade, Button, Typography, Grid, Paper } from '@mui/material';
 import axios from 'axios';
 import CloseIcon from '@mui/icons-material/Close';
@@ -8,19 +8,34 @@ import saucepanCoin from '../images/Saucepan.png';
 import samuraiCoin from '../images/Samurai.png';
 
 const SkinsModal = ({ open, handleClose, userData, userSkins, userCurrentSkin }) => {
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleBuySkin = (event) => {
     // get skin id 
     const skinID = event.target.id;
+    setIsLoading(true);
     axios.post(`http://localhost:4000/buy-skin`, {
       userId: userData.id,
       skinID: Number(skinID)
     })
     .then(response => {
-      console.log('SkinID was updated:', response.data);
+      console.log(`Bought skin with ID : ${skinID}`, response.data);
       handleClose();
     })
-  }
+    .catch(error => {
+      if  (error.response.data.error === "SkinID already exists") {
+        axios.post(`http://localhost:4000/change-skin`, {
+          userId: userData.id,
+          skinID: Number(skinID)
+        }).then(response => {
+          handleClose();
+        }).catch(error => {
+          console.error('Error changing skin:', error);
+        }).finally(() => setIsLoading(false));
+      }
+    })
+    .finally(() => setIsLoading(false));
+  }  
 
   const images = [
     { name: 'Default Skin', price: 'Free', src: defaultCoin },
@@ -67,8 +82,14 @@ const SkinsModal = ({ open, handleClose, userData, userSkins, userCurrentSkin })
                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{image.name}</Typography>
                     <Typography variant="body2">{image.price}</Typography>
                   </div>
-                  <Button onClick={handleBuySkin} id={index+1} variant="contained" sx={{ backgroundColor: `${userSkins.includes(index+1) ? 'darkslategrey' : '#00db0e'}`, width: '100%', textTransform: 'uppercase', fontWeight: 'bold', fontFamily: 'avenir', }}>
-                     {userCurrentSkin === index+1 ? 'Selected' : userSkins.includes(index+1) ? 'Purchased' : 'Buy'}
+                  <Button onClick={handleBuySkin} id={index+1} variant="contained" 
+                    sx={{ 
+                      backgroundColor: `${userCurrentSkin === index+1 ? isLoading ? 'darkgray' : 'dodgerblue' : userSkins.includes(index+1) ? 'gray' : '#00db0e'}`, 
+                      width: '100%', 
+                      textTransform: 'uppercase', 
+                      fontWeight: 'bold', 
+                      fontFamily: 'avenir', }}>
+                     {userCurrentSkin === index+1 ? 'Selected' : userSkins.includes(index+1) ? 'Select' : 'Buy'}
                   </Button>
                 </Paper>
               </Grid>

@@ -2,8 +2,6 @@ import logo from './logo.svg';
 import CoinApp from './components/CoinApp'
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { useState, useEffect } from 'react';
-import { db } from './db/database';
-import { ref, set } from "firebase/database";
 import axios from 'axios';
 import env from "react-dotenv";
 import './App.css';
@@ -56,14 +54,14 @@ function App() {
   }
 
   const getUserProfile = async () => {
-    const getFileId = await axios.get(`https://api.telegram.org/bot${process.env.REACT_APP_BOT_TOKEN}/getUserProfilePhotos?user_id=${userData.id}`, {
+    const getFileId = await axios.get(`https://api.telegram.org/bot${process.env.REACT_APP_TELEGRAM_BOT_TOKEN}/getUserProfilePhotos?user_id=${userData.id}`, {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       }
     })
     const fileId = getFileId.data.result.photos[0][2].file_id
-    const getFilePath = await axios.get(`https://api.telegram.org/bot${process.env.REACT_APP_BOT_TOKEN}/getFile?file_id=${fileId}`, {
+    const getFilePath = await axios.get(`https://api.telegram.org/bot${process.env.REACT_APP_TELEGRAM_BOT_TOKEN}/getFile?file_id=${fileId}`, {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -71,7 +69,7 @@ function App() {
     })
     const filePath = getFilePath.data.result.file_path;
 
-   setProfileUrl(`https://api.telegram.org/file/bot${process.env.REACT_APP_BOT_TOKEN}/${filePath}`)
+   setProfileUrl(`https://api.telegram.org/file/bot${process.env.REACT_APP_TELEGRAM_BOT_TOKEN}/${filePath}`)
   }
   
   const handleMiningInfo = () => {
