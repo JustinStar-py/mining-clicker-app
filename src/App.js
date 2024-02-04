@@ -93,8 +93,13 @@ function App() {
 
   const handleSignUp = () => {
     if (typeof userData.id === 'undefined') return null;
-    axios.post('http://127.0.0.1:4000/signup', { userId: userData.id })
-      .then((response) => {
+    axios.post('http://127.0.0.1:4000/signup', 
+      {
+       userId: userData.id, 
+       username: userData.username,
+       firstname: userData.first_name,
+       lastname: userData.last_name? userData.last_name : 'null',
+      }).then((response) => {
         console.log('Signup was success:', response.data);
       })
       .catch((error) => console.error('Signup error:', error));

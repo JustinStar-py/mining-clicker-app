@@ -71,11 +71,9 @@ app.post('/user/:id/add-point', async (req, res) => {
 
 // Sign up a new user
 app.post('/signup', (req, res) => {
-  const { userId } = req.body;
-
+  const { userId, username, firstname, lastname } = req.body;
   // Here 'users' is assumed to be the collection where user data is being stored.
   const userRef = admin.database().ref(`users/${userId}`);
-
   userRef.once('value')
     .then(snapshot => {
       if (snapshot.exists()) {
@@ -89,7 +87,10 @@ app.post('/signup', (req, res) => {
            lastActive: new Date().toISOString(), 
            limit: 2000, 
            skinID : 1,
-           skins: [1]
+           skins: [1],
+           username: username,
+           firstname: firstname,
+           lastname: lastname
         })
           .then(() => {
             return res.status(201).json({ userId: userId });
@@ -172,6 +173,74 @@ app.post('/change-skin', async (req, res) => {
     res.status(500).send({ error: 'Error updating skinID', details: error });
   }
 })
+
+// get user ranking
+app.get('/user/:id/get-rank', async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    // Get the target user's data
+    const targetUserSnapshot = await database.ref('users/' + userId).once('value');
+    const targetUserData = targetUserSnapshot.val();
+
+    // Get all users' data
+    const allUsersSnapshot = await database.ref('users').orderByChild('points').once('value');
+    const allUsersData = allUsersSnapshot.val();
+
+    // Convert the users data into an array for sorting
+    const usersArray = Object.keys(allUsersData).map((key) => ({
+      userId: key,
+      points: allUsersData[key].points,
+    }));
+
+    // Sort the array in descending order based on points
+    usersArray.sort((a, b) => b.points - a.points);
+
+    // Find the index of the target user in the sorted array
+    const targetUserIndex = usersArray.findIndex((user) => user.userId === userId);
+
+    // Calculate the rank (add 1 because array indices are zero-based)
+    const rank = targetUserIndex + 1;
+
+    // Return the rank
+    res.status(200).send({ rank });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: 'Error getting user rank', details: error });
+  }
+});
+
+// get 10 top players from database or leaderboard
+app.get('/leaderboard', async (req, res) => {
+  try {
+    const snapshot = await database.ref('users').orderByChild('points').limitToLast(10).once('value');
+    const usersData = snapshot.val();
+
+    if (!usersData) {
+      return res.status(200).send({ users: [] });
+    }
+
+    // Convert the user data to an array for sorting
+    const usersArray = Object.keys(usersData).map(key => ({
+      id: key,
+      ...usersData[key]
+    }));
+
+    // Sort users by their points in descending order
+    const sortedUsers = usersArray.sort((a, b) => b.points - a.points);
+
+    // Extract only the necessary information (firstname and username)
+    const leaderboardUsers = sortedUsers.map(user => ({
+      userId: user.userId,
+      username: user.username,
+      points: user.points
+    }));
+
+    res.status(200).send({ users: leaderboardUsers });
+  } catch (error) {
+    res.status(500).send({ error: 'Error getting leaderboard', details: error });
+  }
+});
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
