@@ -9,11 +9,13 @@ import './css/customStyle.css';
 
 const theme = createTheme();
 const telApp = window.Telegram.WebApp;
+const isPhone = window.innerWidth < 600;
 
 function App() {
   const [userData, setUserData] = useState([])
   const [profileUrl, setProfileUrl] = useState(null)
   const [pointCount, setPointCount] = useState(0);
+  const [isTelegramMiniApp, setIsTelegramMiniApp] = useState(true);
   const [miningInfo, setMiningInfo] = useState({
     status: 'idle',
     perClick: 2,
@@ -39,6 +41,7 @@ function App() {
           return key === "" ? value : decodeURIComponent(value);
         });
         var data = JSON.parse(converted.user);
+        setIsTelegramMiniApp(true);
     } else {
         var data = {
           "id": 1887509957,
@@ -75,7 +78,7 @@ function App() {
   const handleMiningInfo = () => {
     if (typeof userData.id === 'undefined') return null;
     // get user data by api and change limit 
-    axios.get(`http://127.0.0.1:4000/user/${userData.id}`)
+    axios.get(`https://wagmibot-solana.site/api/user/${userData.id}`)
       .then((response) => {
         console.log(response)
         if (response.data && 'points' in response.data) {
@@ -93,7 +96,7 @@ function App() {
 
   const handleSignUp = () => {
     if (typeof userData.id === 'undefined') return null;
-    axios.post('http://127.0.0.1:4000/signup', 
+    axios.post('https://wagmibot-solana.site/api/signup', 
       {
        userId: userData.id, 
        username: userData.username,
@@ -108,18 +111,31 @@ function App() {
   // change background color of telegram mini app
   return (
     <div className="App">
-       <ThemeProvider theme={theme}>
-          <CoinApp 
-             userData={userData} 
-             profileUrl={profileUrl} 
-             telApp={telApp} 
-             userId={userData.id} 
-             pointCount={pointCount} 
-             setPointCount={setPointCount} 
-             miningInfo={miningInfo} 
-             setMiningInfo={setMiningInfo}
+        {isPhone && isTelegramMiniApp ? 
+         <ThemeProvider theme={theme}>
+           <CoinApp 
+               userData={userData} 
+               profileUrl={profileUrl} 
+               telApp={telApp} 
+               userId={userData.id} 
+               pointCount={pointCount} 
+               setPointCount={setPointCount} 
+               miningInfo={miningInfo} 
+               setMiningInfo={setMiningInfo}
              />
-       </ThemeProvider>
+          </ThemeProvider>
+          : 
+          <div style={{height:'110vh'}}>
+          <h3 style={{textAlign: 'center', background: 'rgb(216 215 215 / 42%)', display: 'inline-flex',padding: '20px', marginTop: '40vh', borderRadius: '20px',}}>
+              You need open with telegram bot!</h3>
+           <h3>
+              <a href='https://t.me/@PlayWagmiBot' style={{textDecoration:'none', color:'darkmagenta'}}>
+              <img style={{verticalAlign:'middle', marginBottom:'16px'}} width="70" height="70" src="https://img.icons8.com/3d-fluency/94/robot-1.png" alt="robot-1"/> 
+                <span> Go to PlayWagmiBot </span>
+              </a>
+         </h3>
+       </div>
+       }
     </div>
   );
 }

@@ -13,62 +13,126 @@ function formatDate(date) {
 
 function getLeague(points) {
   if (points > 10000) {
-    return 'Diamond';
+    return '👑 Platinum';
   } else if (points > 5000) {
-    return 'Premium';
+    return '💎 Diamond';
   } else if (points > 2000) {
-    return 'Gold';
+    return '🏆 Gold';
   } else if (points > 500) {
-    return 'Silver';
+    return '🥈 Silver';
   } else if (points > 0) {
-    return 'Bronze';
+    return '🥉 Bronze';
   } else {
     return 'Nobe';
   }
 }
 
+function getMenu() {
+  return [
+    [{ text: 'Play Now! 🎡', web_app: { url: 'https://wagmibot-solana.site/' }}],
+    [{ text: 'Show Profile 🌀', callback_data: 'show_profile' }, {text: 'Leaderboard 🔥', callback_data: 'leaderboard'}],
+    [{ text: 'Referral Link 🎁', callback_data: 'referral' }, { text: 'Community 👥', url:'https://t.me/p2p_js'}]
+  ]
+}
+
+// Store referrals in a map for simplicity, use a database in production
+const referrals = new Map();
+
 bot.start((ctx) => {
+  const refId = ctx.message.text.split(' ')[1];
+  if (refId) {
+    referrals.set(ctx.message.from.id, refId);
+    axios.post('https://wagmibot-solana.site/api/referral', {
+      referredId: ctx.message.from.id,
+      referrerId: refId,
+      firstname: ctx.message.from.first_name,
+      lastname: ctx.message.from.last_name ? ctx.message.from.last_name : '',
+      username: ctx.message.from.username ? ctx.message.from.username : 'Anonymous',
+    }).then(() => {
+      ctx.reply(`You invited ${refId} to join the Wagmi Bot.`);
+    }).catch((error) => {
+      ctx.reply(`Error for inviting ${refId} to join the Wagmi Bot.`);
+    })
+  }
+
   ctx.reply(
-    `<b>Welcome dear <a href="tg://user?id=${ctx.message.from.id}">${ctx.message.from.first_name}</a></b>\n
-<b> ☃ Happy 2024🎄Well Lets play with tokens easy! </b>\n\n<b>Support : @P2P_JS</b>`, 
+    `<b>Hi, dear <a href="tg://user?id=${ctx.message.from.id}">${ctx.message.from.first_name}</a>! This is Wagmi Coin 👋!</b> \n
+<b>Tap on the coin and watch your $WAGMI grow.</b>`, 
     { 
       reply_markup: {
-        inline_keyboard: [
-          [{
-            text: 'Play Now! 🎡',
-            web_app: { url: 'https://justinstar-py.github.io/mining-mini-app/' }
-          }],
-          [{ text: 'Show Profile 🌀', callback_data: 'show_profile' }, {text: 'Top Players 🔥', callback_data: 'leaderboard'}]
-        ]
+        inline_keyboard: getMenu()
       },
       parse_mode: 'HTML'
     }
   );
 });
 
+// Add a command that gives the user their referral link
+bot.command('referral', (ctx) => {
+  let referrals = 0;
+  axios.get(`https://wagmibot-solana.site/api/user/${ctx.from.id}`)
+  .then((response) => {
+     referrals = response.data.referrals;
+  }).catch((error) => {
+    console.error('Referral error:', error);
+  })
+  .finally(() => {
+    ctx.replyWithHTML(`<b>Invite your friends and get bonuses for each invited friend! 🎁
+\n🎗Referral link: </b><code>https://t.me/PlayWagmiBot?start=${ctx.message.from.id}</code>
+        \n<b>Your referrals : ${referrals}</b>`, {
+          reply_markup: {
+            inline_keyboard: [[{text: 'Back to menu', callback_data: 'menu'}]]
+          }   
+     });
+  });
+});
+
+bot.action('referral', (ctx) => {
+  ctx.deleteMessage();
+  
+  let referrals = 0;
+  axios.get(`https://wagmibot-solana.site/api/user/${ctx.from.id}`)
+  .then((response) => {
+     referrals = response.data.referrals;
+  })
+  .catch((error) => {
+    console.error('Referral error:', error);
+  })
+  .finally(() => {
+    ctx.replyWithHTML(`<b>Invite your friends and get bonuses for each invited friend! 🎁
+\n🎗Referral link: </b><code>https://t.me/PlayWagmiBot?start=${ctx.from.id}</code>
+    \n<b>Your referrals : ${referrals}</b>`, {
+      reply_markup: {
+        inline_keyboard: [[{text: 'Back to menu', callback_data: 'menu'}]]
+      }   
+     });
+   });
+}) 
+
 bot.action('show_profile', (ctx) => {
   ctx.deleteMessage();
   let rank;
   
   // get user rank
-  axios.get(`http://127.0.0.1:4000/user/${ctx.from.id}/get-rank`)
+  axios.get(`https://wagmibot-solana.site/api/user/${ctx.from.id}/get-rank`)
     .then((response) => {
-        rank = response.data.rank
-        
+        rank = response.data.rank;      
   }).finally(() => {
     // get user info by api
-    axios.get(`http://127.0.0.1:4000/user/${ctx.from.id}`)
+    axios.get(`https://wagmibot-solana.site/api/user/${ctx.from.id}`)
     .then((response) => {
         const points = response.data.points;
         const joinedAt = response.data.createdAt;
-        ctx.reply(`<b>+-----------------------------+</b>
-| Profile @${ctx.from.username} |
-<b>+-------------------------------+</b>
-| <b>🏆 ${getLeague(points)} League </b> 
-| <b>🎗 Balance :</b> ${points}         
-| <b>🔥 Ranking :</b> ${rank}            
-| <b>🪸  Joined :</b> ${formatDate(new Date(joinedAt))}
-<b>+-------------------------------+</b>`, {
+        const referrals = response.data.referrals;
+        ctx.reply(`Profile @${ctx.from.username}
+\n<b>${getLeague(points)} League </b> 
+<b>🎗 Balance :</b> ${points}         
+<b>🔥 Ranking :</b> ${rank}     
+<b>👥 Referrals :</b> ${referrals}       
+<b>🪸  Joined :</b> ${formatDate(new Date(joinedAt))}
+`,       { reply_markup: {
+             inline_keyboard: [[{text: 'Back to menu', callback_data: 'menu'}]]
+          },
           parse_mode: 'HTML'
         })        
     })      
@@ -77,13 +141,27 @@ bot.action('show_profile', (ctx) => {
 
 bot.action('leaderboard', (ctx) => {
   ctx.deleteMessage();
-  axios.get('http://127.0.0.1:4000/leaderboard')
+  axios.get('https://wagmibot-solana.site/api/leaderboard')
   .then((response) => {
     let li = ''
     response.data.users.map((user, index) => {
       li += `<b>${index + 1} - <a href="tg://user?id=${user.userId}">${user.username}</a> : ${user.points}\n</b>`
     })
-    ctx.replyWithHTML('⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶\n<b>⣶🏆 Leaderboard 🏆⣶</b>\n⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶\n\n' + li, {parse_mode: 'HTML'});
+    ctx.replyWithHTML('<b>⣶🏆 Leaderboard 🏆⣶</b>\n\n' + li, 
+    { reply_markup: {
+          inline_keyboard: [[{text: 'Back to menu', callback_data: 'menu'}]]
+      }
+   });
+  })
+})
+
+bot.action('menu', (ctx) => {
+  ctx.deleteMessage();
+  ctx.replyWithHTML('<b>Welcome back @' + ctx.from.username + ' to menu </b>', {
+    reply_markup: {
+      inline_keyboard: getMenu()
+    },
+    parse_mode: 'HTML'
   })
 })
 

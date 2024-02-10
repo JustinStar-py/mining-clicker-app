@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, Modal, Typography, TextField, Avatar } from '@mui/material';
 import { styled } from '@mui/system';
+import { message } from 'antd';
 import { CssBaseline, ThemeProvider, createTheme, LinearProgress } from '@mui/material';
 import SkinsModal from './Skins';
 import { keyframes } from '@emotion/react';
-import logo from '../images/Logo.png';
 import MyProgress from './Progress';
 import axios from 'axios';
+import leafRight from '../images/leaf-right.png';
+// import leafLeft from '../images/leaf-left.png';
 
 // import images of skins
-import pizzaCoin from '../images/Pizza.png';
 import defaultCoin from '../images/Coin.png';
-import saucepanCoin from '../images/Saucepan.png';
-import samuraiCoin from '../images/Samurai.png';
+import AlmondCoin from '../images/Almond.png';
+import diamondCoin from '../images/Diamond.png';
+import GuardCoin from '../images/Guard.png';
 
 const isDesktop = window.innerWidth > 1000;
 const theme = createTheme();
@@ -38,10 +40,10 @@ const CoinLogo = styled(Box)({
     marginBottom: '35px',
     // filter: 'hue-rotate(12deg) drop-shadow(0px 0px 25px #0152AC)',
     [theme.breakpoints.down('md')]: {
-        width: '67vw',
+        width: '75vw',
         marginBottom: '35px',
     },
-});
+})
 
 // keyframes for animation
 const expand = keyframes`
@@ -76,14 +78,15 @@ export default function CoinApp(props) {
   const [userAddress, setUserAddress] = useState('');
   const [userSkins, setUserSkins] = useState([]);
   const [userCurrentSkinID, setUserCurrentSkinID] = useState();
-  const [userCurrentSkinImage, setUserCurrentSkinImage] = useState();
+  const [userCurrentSkinImage, setUserCurrentSkinImage] = useState(0);
+  const [userCurrentRank, setUserCurrentRank] = useState(null);
   const [audio] = useState(new Audio('https://assets.mixkit.co/active_storage/sfx/216/216.wav'));
 
   useEffect(() => {
     const interval = setInterval(async () => {
       setMiningInfo(prevMiningInfo => {
         // Only increase limit if it's below the max
-        if (userData.id)  axios.get(`http://localhost:4000/user/${userData.id}`)
+        if (userData.id)  axios.get(`https://wagmibot-solana.site/api/user/${userData.id}`)
         if (prevMiningInfo.limit < prevMiningInfo.max) {
           return {...prevMiningInfo, limit: prevMiningInfo.limit + 1};
         } else {
@@ -99,7 +102,7 @@ export default function CoinApp(props) {
   
   useEffect(() => {
     const req = async () => {
-      await axios.post(`http://localhost:4000/user/${userId}/add-point`, {
+      await axios.post(`https://wagmibot-solana.site/api/user/${userId}/add-point`, {
       points: miningInfo.perClick,
     })
     .then(response => {
@@ -116,7 +119,7 @@ export default function CoinApp(props) {
 
   useEffect(() => {
     const req = async () => {
-      await axios.get(`http://localhost:4000/user/${userId}`)
+      await axios.get(`https://wagmibot-solana.site/api/user/${userId}`)
       .then(response => {
         setUserSkins(response.data.skins);
         const userCurrentSkinID = response.data.skinID;
@@ -127,13 +130,13 @@ export default function CoinApp(props) {
             setUserCurrentSkinImage(defaultCoin);
             break;
           case 2:
-            setUserCurrentSkinImage(saucepanCoin);
+            setUserCurrentSkinImage(AlmondCoin);
             break;
           case 3:
-            setUserCurrentSkinImage(samuraiCoin);
+            setUserCurrentSkinImage(diamondCoin);
             break;
           case 4:
-            setUserCurrentSkinImage(pizzaCoin);
+            setUserCurrentSkinImage(GuardCoin);
             break;
           default:
             setUserCurrentSkinImage(defaultCoin);
@@ -144,6 +147,13 @@ export default function CoinApp(props) {
         console.error('Error getting skins:', error);
         // Additional code to handle the error...
       });
+
+      await axios.get(`https://wagmibot-solana.site/api/user/${userId}/get-rank`)
+      .then(response => {
+        setUserCurrentRank(response.data.rank);
+        console.log('Rank:', response.data.rank);
+        // Additional code to handle the response...
+      })
     }
     req()
   },[pointCount, openSkins] )
@@ -189,19 +199,19 @@ export default function CoinApp(props) {
   // this function will show after user clicked on the button in withdraw modal
   const handleWithdraw = () => {
     if (pointCount >= 50) {
-      axios.post(`http://localhost:4000/withdraw`, {
+      axios.post(`https://wagmibot-solana.site/api/withdraw`, {
         userId: userId,
         userAddress: userAddress,
         points: pointCount
       })
       .then(response => {
-        console.log('withdraw was success:', response.data);
+        message.success('Withdrawal was successfully, please check your wallet!');
         if (window.Telegram.WebApp) {
            window.Telegram.WebApp.close();
         }
       })
       .catch(error => {
-        console.error('Error withdraw:', error);
+        message.error('Something went wrong, please check wagmi bot!');
         // Additional code to handle the error...
       });
     } else {
@@ -215,15 +225,30 @@ export default function CoinApp(props) {
   };
 
   const getPointLeftPosition = (pointCount) => {
-    if (pointCount > 9999999) return '35vw';
-    if (pointCount > 999999) return '36.5vw';
-    if (pointCount > 99999) return '39vw';
-    if (pointCount > 9999) return '41vw';
-    if (pointCount > 999) return '43vw';
-    if (pointCount > 99) return '45vw';
-    if (pointCount > 9) return '46vw';
+    const thresholds = [
+        [999999999999999, '17vw'],
+        [9999999999999, '21vw'],
+        [999999999999, '23vw'],
+        [9999999999, '27vw'],
+        [999999999, '29vw'],
+        [99999999, '32vw'],
+        [9999999, '34vw'],
+        [999999, '35.5vw'],
+        [99999, '38vw'],
+        [9999, '40vw'],
+        [999, '42vw'],
+        [99, '45vw'],
+        [9, '46vw'],
+    ];
+
+    for (const [threshold, position] of thresholds) {
+        if (pointCount > threshold) {
+            return position;
+        }
+    }
+
     return '47.5vw';
-  }
+};
 
   const getCoinSkinShadow = (userCurrentSkinID) => {
     switch (userCurrentSkinID) {
@@ -232,7 +257,7 @@ export default function CoinApp(props) {
       case 2:
         return '0px 0px 45px #FAE088';
       case 3:
-        return '0px 0px 45px #BEBFAD';
+        return '0px 0px 45px blue';
       case 4:
         return '0px 0px 45px skyblue';
       default:
@@ -249,11 +274,16 @@ export default function CoinApp(props) {
         </Typography>
      </Box>
 
-     <Typography component="p" sx={{fontWeight: '800', fontFamily: 'avenir', position: 'absolute', top: '20%', left: getPointLeftPosition(pointCount), color: 'aliceblue', animation: fontSizeAnimation, fontSize: `${isDesktop ? '22px' : '25px'}`}}>
+     <Typography component="p" sx={{fontWeight: '800', fontFamily: 'avenir', position: 'absolute', top: '20%', left: getPointLeftPosition(pointCount), color: 'aliceblue', animation: fontSizeAnimation, fontSize: `${isDesktop ? '23px' : '25px'}`, zIndex: 1}}>
            {pointCount}
       </Typography>
+      <Typography component="p" sx={{fontWeight: '600', fontFamily: 'avenir', position: 'absolute', top: '24%', color: 'aliceblue', fontSize: `${isDesktop ? '14px' : '16'}`, zIndex: 1}}>
+          <img src={leafRight} alt="leaf" style={{filter: 'invert(1)', width: '40px', verticalAlign: 'middle', transform: 'scaleX(-1)'}}/>
+           Ranking : {userCurrentRank === null ? 'Loading...' : userCurrentRank === 1 ? '1st' : userCurrentRank === 2 ? '2nd' : userCurrentRank === 3 ? '3rd' : `${userCurrentRank}th`}
+          <img src={leafRight} alt="leaf" style={{filter: 'invert(1)', width: '40px', verticalAlign: 'middle'}}/>
+      </Typography>
  
-      <CoinLogo component="img" src={userCurrentSkinImage} alt="Coin Logo" onClick={handleCoinClick} sx={{animation: expandAnimation,"&:hover": {  cursor: 'pointer',}, filter: `drop-shadow(${getCoinSkinShadow(userCurrentSkinID)})`}} />
+      <CoinLogo component="img" src={userCurrentSkinImage || defaultCoin} alt="Coin Logo" onClick={handleCoinClick} sx={{animation: expandAnimation,"&:hover": {  cursor: 'pointer',}, filter: `drop-shadow(${getCoinSkinShadow(userCurrentSkinID)})`}} />
 
       {textPoints.map((point) => (
           <Box
@@ -297,7 +327,7 @@ export default function CoinApp(props) {
       />
 
       {/* Buttons */}
-      <Box sx={{ mb: 4 }}>
+      <Box sx={{ mb: 3 }}>
         <GoldButton variant="contained" onClick={handleWithdrawClick}>
            Withdraw <img style={{verticalAlign:'middle', marginLeft: '5px'}} width="25" height="25" src="https://img.icons8.com/external-flat-berkahicon/64/external-Cash-Out-market-analytics-flat-berkahicon.png" alt="external-Cash-Out-market-analytics-flat-berkahicon"/>
         </GoldButton>
@@ -326,11 +356,11 @@ export default function CoinApp(props) {
           background: '#ffffffb5',
           backdropFilter: 'blur(5px)'
         }} >
-          <Typography id="modal-modal-title" variant="h6" component="h4" fontFamily="avenir">
-            Enter your wallet address
+          <Typography id="modal-modal-title" fontFamily="avenir" sx={{ fontSize: '20px' }}>
+            Enter your solana wallet address to withdraw
           </Typography>
-          <Typography id="modal-modal-description" sx={{ mt: 1, fontFamily: "avenir" }} component="p">
-             minimum withdraw: 5000
+          <Typography id="modal-modal-description" sx={{ mt: 1, fontFamily: "avenir", fontSize: '16px' }} component="p">
+             minimum withdraw: 5000 points
           </Typography>
           <TextField
             fullWidth

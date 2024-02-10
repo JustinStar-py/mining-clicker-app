@@ -1,6 +1,6 @@
 .App {
   text-align: center;
-  background: radial-gradient(circle, rgba(0,0,0,1) 25%, rgb(0 74 131) 100%);
+  background: radial-gradient(circle, rgb(195 116 235) 25%, rgb(75 0 227) 100%);
   /* background-image: url('https://img.freepik.com/premium-vector/abstract-seamless-pattern-small-squares-various-sizes-pixels-black-colors_444390-7713.jpg'); */
 }
 
@@ -49,4 +49,14 @@ img {
   user-select: none;
 }
 
-
+:where(.css-dev-only-do-not-override-1rqnfsa).ant-message .ant-message-notice-wrapper .ant-message-notice-content {
+  display: inline-block;
+  padding: 9px 12px;
+  background: #0000007a !important;
+  color: white !important;
+  backdrop-filter: blur(4px) !important;
+  border-radius: 9px;
+  font-weight: 600;
+  box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.08),0 3px 6px -4px rgba(0, 0, 0, 0.12),0 9px 28px 8px rgba(0, 0, 0, 0.05);
+  pointer-events: all;
+}

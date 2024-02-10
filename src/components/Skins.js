@@ -1,11 +1,47 @@
 import React, { useState } from 'react';
 import { Modal, Backdrop, Fade, Button, Typography, Grid, Paper } from '@mui/material';
+import { styled, keyframes } from '@mui/system';
 import axios from 'axios';
 import CloseIcon from '@mui/icons-material/Close';
-import pizzaCoin from '../images/Pizza.png';
+import GuardCoin from '../images/Guard.png';
 import defaultCoin from '../images/Coin.png';
-import saucepanCoin from '../images/Saucepan.png';
-import samuraiCoin from '../images/Samurai.png';
+import AlmondCoin from '../images/Almond.png';
+import diamondCoin from '../images/Diamond.png';
+import { message } from 'antd';
+
+const images = [
+  { name: 'Default Skin', price: 'Free', src: defaultCoin },
+  { name: 'Almond Skin', price: '500 Points', src: AlmondCoin },
+  { name: 'Diamond Skin', price: '2200 Points', src: diamondCoin },
+  { name: 'Guard Skin', price: '5000 Points', src: GuardCoin },
+  // Add more images as needed
+];
+
+const slideIn = keyframes`
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+`;
+
+const slideOut = keyframes`
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+`;
+
+const AnimatedDiv = styled('div')(({ theme, open }) => ({
+  animation: `${open ? slideIn : slideOut} 0.5s`,
+}));
 
 const SkinsModal = ({ open, handleClose, userData, userSkins, userCurrentSkin }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -14,36 +50,31 @@ const SkinsModal = ({ open, handleClose, userData, userSkins, userCurrentSkin })
     // get skin id 
     const skinID = event.target.id;
     setIsLoading(true);
-    axios.post(`http://localhost:4000/buy-skin`, {
+    axios.post(`https://wagmibot-solana.site/api/buy-skin`, {
       userId: userData.id,
       skinID: Number(skinID)
     })
     .then(response => {
-      console.log(`Bought skin with ID : ${skinID}`, response.data);
+      message.success('Skin purchased successfully!');
       handleClose();
     })
+    
     .catch(error => {
       if  (error.response.data.error === "SkinID already exists") {
-        axios.post(`http://localhost:4000/change-skin`, {
+        axios.post(`https://wagmibot-solana.site/api/change-skin`, {
           userId: userData.id,
           skinID: Number(skinID)
         }).then(response => {
+          message.success('Skin changed successfully');
           handleClose();
         }).catch(error => {
+          message.error('Error changing skin');
           console.error('Error changing skin:', error);
         }).finally(() => setIsLoading(false));
       }
     })
     .finally(() => setIsLoading(false));
   }  
-
-  const images = [
-    { name: 'Default Skin', price: 'Free', src: defaultCoin },
-    { name: 'Saucepan Skin', price: '500 Points', src: saucepanCoin },
-    { name: 'Samurai Skin', price: '1200 Points', src: samuraiCoin },
-    { name: 'Pizza Skin', price: '2000 Points', src: pizzaCoin },
-    // Add more images as needed
-  ];
 
   return (
     <Modal
@@ -58,14 +89,14 @@ const SkinsModal = ({ open, handleClose, userData, userSkins, userCurrentSkin })
       }}
     >
       <Fade in={open}>
-        <div style={{
+        <AnimatedDiv open={open} style={{
           backgroundColor: '#ffffffb5',
           backdropFilter: 'blur(5px)',
           padding: '20px',
           borderRadius: '10px',
           maxWidth: '300px',
           margin: 'auto',
-          marginTop: '10%',
+          marginTop: '2.5vh',
         }}>
           <Grid container spacing={2}>
             {images.map((image, index) => (
@@ -98,7 +129,7 @@ const SkinsModal = ({ open, handleClose, userData, userSkins, userCurrentSkin })
           <div style={{ position: 'absolute', top: '10px', right: '10px', cursor: 'pointer' }}>
             <CloseIcon onClick={handleClose} />
           </div>
-        </div>
+        </AnimatedDiv>
       </Fade>
     </Modal>
   );
