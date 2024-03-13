@@ -36,13 +36,14 @@ function App() {
 
   const init = () => {
      var search = window.Telegram.WebApp.initData;
+     var data = null;
      if (search !== null && search !== '') {
         var converted = JSON.parse('{"' + search.replace(/&/g, '","').replace(/=/g,'":"') + '"}', function(key, value) {
           return key === "" ? value : decodeURIComponent(value);
         });
         var data = JSON.parse(converted.user);
-        setIsTelegramMiniApp(true);
-    } else {
+    } 
+    else {
         var data = {
           "id": 1887509957,
           "first_name": "Its Justin",
@@ -53,7 +54,12 @@ function App() {
           "allows_write_to_pm": true
       }
     }
-    setUserData(data);
+     if (data !== null) {
+       setUserData(data)
+       setIsTelegramMiniApp(true);
+     } else {
+        setIsTelegramMiniApp(false);
+     }
   }
 
   const getUserProfile = async () => {
@@ -78,7 +84,7 @@ function App() {
   const handleMiningInfo = () => {
     if (typeof userData.id === 'undefined') return null;
     // get user data by api and change limit 
-    axios.get(`https://wagmibot-solana.site/api/user/${userData.id}`)
+    axios.get(`https://app.sendchain.io/api/user/${userData.id}`)
       .then((response) => {
         console.log(response)
         if (response.data && 'points' in response.data) {
@@ -96,7 +102,7 @@ function App() {
 
   const handleSignUp = () => {
     if (typeof userData.id === 'undefined') return null;
-    axios.post('https://wagmibot-solana.site/api/signup', 
+    axios.post('https://app.sendchain.io/api/signup', 
       {
        userId: userData.id, 
        username: userData.username,
@@ -129,9 +135,9 @@ function App() {
           <h3 style={{textAlign: 'center', background: 'rgb(216 215 215 / 42%)', display: 'inline-flex',padding: '20px', marginTop: '40vh', borderRadius: '20px',}}>
               You need open with telegram bot!</h3>
            <h3>
-              <a href='https://t.me/@PlayWagmiBot' style={{textDecoration:'none', color:'darkmagenta'}}>
+              <a href='https://t.me/sendchain_bot' style={{textDecoration:'none', color:'darkmagenta'}}>
               <img style={{verticalAlign:'middle', marginBottom:'16px'}} width="70" height="70" src="https://img.icons8.com/3d-fluency/94/robot-1.png" alt="robot-1"/> 
-                <span> Go to PlayWagmiBot </span>
+                <span> Go to SendChain_bot </span>
               </a>
          </h3>
        </div>

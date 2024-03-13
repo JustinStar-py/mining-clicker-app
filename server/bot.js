@@ -29,7 +29,7 @@ function getLeague(points) {
 
 function getMenu() {
   return [
-    [{ text: 'Play Now! 🎡', web_app: { url: 'https://wagmibot-solana.site/' }}],
+    [{ text: 'Play Now! 🎡', web_app: { url: 'https://app.sendchain.io/' }}],
     [{ text: 'Show Profile 🌀', callback_data: 'show_profile' }, {text: 'Leaderboard 🔥', callback_data: 'leaderboard'}],
     [{ text: 'Referral Link 🎁', callback_data: 'referral' }, { text: 'Community 👥', url:'https://t.me/p2p_js'}]
   ]
@@ -42,22 +42,28 @@ bot.start((ctx) => {
   const refId = ctx.message.text.split(' ')[1];
   if (refId) {
     referrals.set(ctx.message.from.id, refId);
-    axios.post('https://wagmibot-solana.site/api/referral', {
+    axios.post('https://app.sendchain.io/api/referral', {
       referredId: ctx.message.from.id,
       referrerId: refId,
       firstname: ctx.message.from.first_name,
       lastname: ctx.message.from.last_name ? ctx.message.from.last_name : '',
       username: ctx.message.from.username ? ctx.message.from.username : 'Anonymous',
     }).then(() => {
-      ctx.reply(`You invited ${refId} to join the Wagmi Bot.`);
+      ctx.reply(`You invited by ${refId} to join the SendChain Bot.`);
+      bot.telegram.sendMessage(chat_id=Number(refId), text=`🪼 You invited your friend <a href="tg://user?id=${ctx.message.from.id}">${ctx.message.from.first_name}</a>! 🎉\n👀 Check your referrals by /referral`, 
+        { 
+          parse_mode: 'HTML'
+        }
+      )
     }).catch((error) => {
-      ctx.reply(`Error for inviting ${refId} to join the Wagmi Bot.`);
+      // console.error('Referral error:', error);
+      ctx.reply(`Error for inviting ${refId} to join the SendChain Bot.`);
     })
   }
 
   ctx.reply(
-    `<b>Hi, dear <a href="tg://user?id=${ctx.message.from.id}">${ctx.message.from.first_name}</a>! This is Wagmi Coin 👋!</b> \n
-<b>Tap on the coin and watch your $WAGMI grow.</b>`, 
+    `<b>Hi, dear <a href="tg://user?id=${ctx.message.from.id}">${ctx.message.from.first_name}</a>! This is SendChain Bot 👋!</b> \n
+<b>Tap on the coin and watch your $SEND grow.</b>`, 
     { 
       reply_markup: {
         inline_keyboard: getMenu()
@@ -70,7 +76,7 @@ bot.start((ctx) => {
 // Add a command that gives the user their referral link
 bot.command('referral', (ctx) => {
   let referrals = 0;
-  axios.get(`https://wagmibot-solana.site/api/user/${ctx.from.id}`)
+  axios.get(`https://app.sendchain.io/api/user/${ctx.from.id}`)
   .then((response) => {
      referrals = response.data.referrals;
   }).catch((error) => {
@@ -78,7 +84,7 @@ bot.command('referral', (ctx) => {
   })
   .finally(() => {
     ctx.replyWithHTML(`<b>Invite your friends and get bonuses for each invited friend! 🎁
-\n🎗Referral link: </b><code>https://t.me/PlayWagmiBot?start=${ctx.message.from.id}</code>
+\n🎗Referral link: </b><code>https://t.me/SendChain_bot?start=${ctx.message.from.id}</code>
         \n<b>Your referrals : ${referrals}</b>`, {
           reply_markup: {
             inline_keyboard: [[{text: 'Back to menu', callback_data: 'menu'}]]
@@ -91,7 +97,7 @@ bot.action('referral', (ctx) => {
   ctx.deleteMessage();
   
   let referrals = 0;
-  axios.get(`https://wagmibot-solana.site/api/user/${ctx.from.id}`)
+  axios.get(`https://app.sendchain.io/api/user/${ctx.from.id}`)
   .then((response) => {
      referrals = response.data.referrals;
   })
@@ -100,7 +106,7 @@ bot.action('referral', (ctx) => {
   })
   .finally(() => {
     ctx.replyWithHTML(`<b>Invite your friends and get bonuses for each invited friend! 🎁
-\n🎗Referral link: </b><code>https://t.me/PlayWagmiBot?start=${ctx.from.id}</code>
+\n🎗Referral link: </b><code>https://t.me/SendChain_bot?start=${ctx.from.id}</code>
     \n<b>Your referrals : ${referrals}</b>`, {
       reply_markup: {
         inline_keyboard: [[{text: 'Back to menu', callback_data: 'menu'}]]
@@ -114,12 +120,12 @@ bot.action('show_profile', (ctx) => {
   let rank;
   
   // get user rank
-  axios.get(`https://wagmibot-solana.site/api/user/${ctx.from.id}/get-rank`)
+  axios.get(`https://app.sendchain.io/api/user/${ctx.from.id}/get-rank`)
     .then((response) => {
         rank = response.data.rank;      
   }).finally(() => {
     // get user info by api
-    axios.get(`https://wagmibot-solana.site/api/user/${ctx.from.id}`)
+    axios.get(`https://app.sendchain.io/api/user/${ctx.from.id}`)
     .then((response) => {
         const points = response.data.points;
         const joinedAt = response.data.createdAt;
@@ -141,7 +147,7 @@ bot.action('show_profile', (ctx) => {
 
 bot.action('leaderboard', (ctx) => {
   ctx.deleteMessage();
-  axios.get('https://wagmibot-solana.site/api/leaderboard')
+  axios.get('https://app.sendchain.io/api/leaderboard')
   .then((response) => {
     let li = ''
     response.data.users.map((user, index) => {

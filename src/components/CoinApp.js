@@ -1,47 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Modal, Typography, TextField, Avatar } from '@mui/material';
+import { Box, Button, Modal, Typography, TextField, Avatar, Divider } from '@mui/material';
 import { styled } from '@mui/system';
 import { message } from 'antd';
 import { CssBaseline, ThemeProvider, createTheme, LinearProgress } from '@mui/material';
 import SkinsModal from './Skins';
+import FriendsModal from './Freinds';
+import LeaderboardModal from './Leaderboard';
 import { keyframes } from '@emotion/react';
 import MyProgress from './Progress';
 import axios from 'axios';
 import leafRight from '../images/leaf-right.png';
-// import leafLeft from '../images/leaf-left.png';
 
 // import images of skins
 import defaultCoin from '../images/Coin.png';
-import AlmondCoin from '../images/Almond.png';
-import diamondCoin from '../images/Diamond.png';
+import OrangeCoin from '../images/Orange.png';
 import GuardCoin from '../images/Guard.png';
+import BattleCoin from '../images/Battle.png';
 
 const isDesktop = window.innerWidth > 1000;
 const theme = createTheme();
 
 // Styled components for the gold buttons
 const GoldButton = styled(Button)({
-  backgroundColor: 'dodgerblue',
+  backgroundColor: 'transparent',
   borderRadius: 15,
-  margin: '0 10px',
-  width: `${isDesktop ? '20vw' : '40vw'}`,
-  padding: '10px 20px',
+  width: '20vw',
+  margin: '10px',
+  padding: window.innerHeight < 740 ? '5px' : '10px',
   fontFamily: 'avenir',
-  fontSize: '18px',
+  fontSize: '19px',
   textTransform: 'Capitalize',
   fontWeight: 800,
+  boxShadow: 'none',
   '&:hover': {
-    backgroundColor: 'gold',
+    backgroundColor: 'transparent',
+    boxShadow: 'none',
   },
 });
 
 const CoinLogo = styled(Box)({
     width: '35vw',
-    marginBottom: '35px',
+    marginBottom: '15px',
     // filter: 'hue-rotate(12deg) drop-shadow(0px 0px 25px #0152AC)',
     [theme.breakpoints.down('md')]: {
-        width: '75vw',
-        marginBottom: '35px',
+        width: window.innerHeight < 740 ? '67vw' : '75vw',
+        marginBottom: window.innerHeight < 740 ? '10px' : '35px',
     },
 })
 
@@ -72,6 +75,8 @@ export default function CoinApp(props) {
   const {userData, profileUrl, telApp, userId, pointCount, setPointCount, miningInfo, setMiningInfo } = props;
   const [openWithdraw, setOpenWithdraw] = useState(false);
   const [openSkins, setOpenSkins] = useState(false);
+  const [openFriends, setOpenFriends] = useState(false);
+  const [openLeaderboard, setOpenLeaderboard] = useState(false);
   const [expandAnimation, setExpandAnimation] = useState('');
   const [fontSizeAnimation, setFontSizeAnimation] = useState('');
   const [textPoints, setTextPoints] = useState([]); 
@@ -79,14 +84,17 @@ export default function CoinApp(props) {
   const [userSkins, setUserSkins] = useState([]);
   const [userCurrentSkinID, setUserCurrentSkinID] = useState();
   const [userCurrentSkinImage, setUserCurrentSkinImage] = useState(0);
+  const [userCurrentReferrals, setUserCurrentReferrals] = useState(0);
+  const [userReferralsInfo, setUserReferralsInfo] = useState([]);
   const [userCurrentRank, setUserCurrentRank] = useState(null);
+  const [leaderboardList, setLeaderboardList] = useState([]);
   const [audio] = useState(new Audio('https://assets.mixkit.co/active_storage/sfx/216/216.wav'));
 
   useEffect(() => {
     const interval = setInterval(async () => {
       setMiningInfo(prevMiningInfo => {
         // Only increase limit if it's below the max
-        if (userData.id)  axios.get(`https://wagmibot-solana.site/api/user/${userData.id}`)
+        if (userData.id)  axios.get(`https://app.sendchain.io/api/user/${userData.id}`)
         if (prevMiningInfo.limit < prevMiningInfo.max) {
           return {...prevMiningInfo, limit: prevMiningInfo.limit + 1};
         } else {
@@ -102,7 +110,7 @@ export default function CoinApp(props) {
   
   useEffect(() => {
     const req = async () => {
-      await axios.post(`https://wagmibot-solana.site/api/user/${userId}/add-point`, {
+      await axios.post(`https://app.sendchain.io/api/user/${userId}/add-point`, {
       points: miningInfo.perClick,
     })
     .then(response => {
@@ -119,24 +127,26 @@ export default function CoinApp(props) {
 
   useEffect(() => {
     const req = async () => {
-      await axios.get(`https://wagmibot-solana.site/api/user/${userId}`)
+      await axios.get(`https://app.sendchain.io/api/user/${userId}`)
       .then(response => {
-        setUserSkins(response.data.skins);
         const userCurrentSkinID = response.data.skinID;
+        setUserSkins(response.data.skins);
         setUserCurrentSkinID(userCurrentSkinID);
+        setUserCurrentReferrals(response.data.referrals);
+        setUserReferralsInfo(response.data.referralsInfo);
         // set user images
         switch (userCurrentSkinID) {
           case 1:
             setUserCurrentSkinImage(defaultCoin);
             break;
           case 2:
-            setUserCurrentSkinImage(AlmondCoin);
+            setUserCurrentSkinImage(OrangeCoin);
             break;
           case 3:
-            setUserCurrentSkinImage(diamondCoin);
+            setUserCurrentSkinImage(GuardCoin);
             break;
           case 4:
-            setUserCurrentSkinImage(GuardCoin);
+            setUserCurrentSkinImage(BattleCoin);
             break;
           default:
             setUserCurrentSkinImage(defaultCoin);
@@ -148,15 +158,23 @@ export default function CoinApp(props) {
         // Additional code to handle the error...
       });
 
-      await axios.get(`https://wagmibot-solana.site/api/user/${userId}/get-rank`)
+      await axios.get(`https://app.sendchain.io/api/user/${userId}/get-rank`)
       .then(response => {
         setUserCurrentRank(response.data.rank);
         console.log('Rank:', response.data.rank);
         // Additional code to handle the response...
       })
+
+      await axios.get(`https://app.sendchain.io/api/leaderboard`)
+      .then(response => {
+          setLeaderboardList(response.data.users)
+      })
+      .catch(error => {
+        console.error('Error getting leaderboard:', error);
+      });
     }
     req()
-  },[pointCount, openSkins] )
+  },[pointCount, openSkins, openFriends] )
 
   const handleOpen = () => setOpenWithdraw(true);
   const handleClose = () => setOpenWithdraw(false);
@@ -199,7 +217,7 @@ export default function CoinApp(props) {
   // this function will show after user clicked on the button in withdraw modal
   const handleWithdraw = () => {
     if (pointCount >= 50) {
-      axios.post(`https://wagmibot-solana.site/api/withdraw`, {
+      axios.post(`https://app.sendchain.io/api/withdraw`, {
         userId: userId,
         userAddress: userAddress,
         points: pointCount
@@ -211,7 +229,7 @@ export default function CoinApp(props) {
         }
       })
       .catch(error => {
-        message.error('Something went wrong, please check wagmi bot!');
+        message.error('Something went wrong, please check SendChain bot!');
         // Additional code to handle the error...
       });
     } else {
@@ -253,11 +271,11 @@ export default function CoinApp(props) {
   const getCoinSkinShadow = (userCurrentSkinID) => {
     switch (userCurrentSkinID) {
       case 1:
-        return '0px 0px 45px #0152AC';
+        return '0px 0px 45px #291400';
       case 2:
         return '0px 0px 45px #FAE088';
       case 3:
-        return '0px 0px 45px blue';
+        return '0px 0px 45px #5c716c';
       case 4:
         return '0px 0px 45px skyblue';
       default:
@@ -303,7 +321,7 @@ export default function CoinApp(props) {
           </Box>
         ))}
      
-      <p style={{position: 'absolute', top: '74%', left: '5vw', color: 'aliceblue', animation: fontSizeAnimation, fontFamily: "avenir", fontSize: `${isDesktop ? '18px' : '13px'}`}}>
+      <p style={{position: 'absolute', top: '77%', left: '5vw', color: 'aliceblue', animation: fontSizeAnimation, fontFamily: "avenir", fontSize: `${isDesktop ? '18px' : '13px'}`}}>
          <img style={{verticalAlign:'bottom'}} width="28" height="30" src="https://img.icons8.com/fluency/48/flash-on.png" alt="flash-on"/>
           <span style={{fontSize: `${isDesktop ? '25px' : '20px'}`}}> {miningInfo.limit} </span> / {miningInfo.max}
       </p>
@@ -316,7 +334,7 @@ export default function CoinApp(props) {
           width: `${isDesktop ? '30vw' : '90vw'}`, 
           height: `${isDesktop ? '1.5vh' : '4vh'}`, 
           position: 'absolute', 
-          top: '82%', 
+          top: '84%', 
           borderRadius: '10px',  
           "& .MuiLinearProgress-dashed": { 
             right: '0px',
@@ -327,12 +345,21 @@ export default function CoinApp(props) {
       />
 
       {/* Buttons */}
-      <Box sx={{ mb: 3 }}>
-        <GoldButton variant="contained" onClick={handleWithdrawClick}>
-           Withdraw <img style={{verticalAlign:'middle', marginLeft: '5px'}} width="25" height="25" src="https://img.icons8.com/external-flat-berkahicon/64/external-Cash-Out-market-analytics-flat-berkahicon.png" alt="external-Cash-Out-market-analytics-flat-berkahicon"/>
+      <Box sx={{ mb: 2, width:'95vw', maxWidth:'138vw', background: '#2f32325c', borderRadius:'15px', display: 'flex', backdropFilter: 'blur(10px)', justifyContent: 'space-around', alignItems: 'center'}}>
+        <GoldButton variant="contained" onClick={() => setOpenFriends(true)}>
+            Frens <img style={{verticalAlign:'middle'}} width="25" height="25" src="https://img.icons8.com/color/48/friends--v1.png" alt="paint-palette"/>
         </GoldButton>
+         <Divider orientation="vertical" variant="middle" flexItem color='rgb(255 255 255 / 40%)' sx={{marginRight: '30px'}} />
+         <GoldButton variant="contained" onClick={() => setOpenLeaderboard(true)}>
+           <span style={{marginRight: '5px', marginTop: '5px'}}>Leaderboard</span>
+           <img style={{verticalAlign:'middle'}} width="25" height="25" src="https://img.icons8.com/external-anggara-flat-anggara-putra/64/external-podium-school-anggara-flat-anggara-putra-2.png" alt="external-podium"/>
+        </GoldButton>
+         <Divider orientation="vertical" variant="middle" flexItem color='rgb(255 255 255 / 40%)' sx={{marginLeft: '30px'}} />
         <GoldButton variant="contained" onClick={() => setOpenSkins(true)}>
-           Skins <img style={{verticalAlign:'middle', marginLeft: '5px'}} width="25" height="25" src="https://img.icons8.com/fluency/48/paint-palette.png" alt="paint-palette"/>
+            Skins <img style={{verticalAlign:'middle'}} width="25" height="25" src="https://img.icons8.com/fluency/48/paint-palette.png" alt="paint-palette"/>
+        </GoldButton>
+        <GoldButton variant="contained" onClick={handleWithdrawClick} sx={{ position: 'absolute', right: '0vw', bottom: '15vh', padding: '10px', borderRadius: '12px', background: '#2f32325c', backdropFilter: 'blur(10px)', width: '45vw'}}>
+           Withdraw <img style={{verticalAlign:'middle'}} width="25" height="25" src="https://img.icons8.com/emoji/48/money-bag-emoji.png" alt="flash-on"/>
         </GoldButton>
       </Box>
 
@@ -357,7 +384,7 @@ export default function CoinApp(props) {
           backdropFilter: 'blur(5px)'
         }} >
           <Typography id="modal-modal-title" fontFamily="avenir" sx={{ fontSize: '20px' }}>
-            Enter your solana wallet address to withdraw
+            Enter your bsc wallet address to withdraw
           </Typography>
           <Typography id="modal-modal-description" sx={{ mt: 1, fontFamily: "avenir", fontSize: '16px' }} component="p">
              minimum withdraw: 5000 points
@@ -382,6 +409,12 @@ export default function CoinApp(props) {
 
      {/* Skins Modal */}
       <SkinsModal open={openSkins} handleClose={() => setOpenSkins(false)} userData={userData} userSkins={userSkins} userCurrentSkin={userCurrentSkinID} />
+   
+      {/* Friends Modal */}
+      <FriendsModal open={openFriends} handleClose={() => setOpenFriends(false)} userData={userData} referralCount={userCurrentReferrals} referralList={userReferralsInfo === 'null' ? [] : userReferralsInfo} />
+    
+      {/* Leaderboard Modal */}
+      <LeaderboardModal open={openLeaderboard} handleClose={() => setOpenLeaderboard(false)} userData={userData} leaderboardList={leaderboardList} />
     </Box>
   );
 }

@@ -1,11 +1,11 @@
 var admin = require("firebase-admin");
-var serviceAccount = require("./adminsdk-firebase.json");
+var serviceAccount = require("./firebase-adminsdk.json");
 const { bot } = require('./bot');
-const { transfer } = require('./cryptoOperations-sol');
+const { transfer } = require('./cryptoOperations-bsc');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://wagmi-play-app-default-rtdb.firebaseio.com"
+  databaseURL: "https://sendchain-ee5ed-default-rtdb.firebaseio.com/"
 });
 
 const express = require('express');
@@ -72,7 +72,6 @@ app.post('/api/user/:id/add-point', async (req, res) => {
 // Sign up a new user
 app.post('/api/signup', (req, res) => {
   const { userId, username, firstname, lastname } = req.body;
-
   // Here 'users' is assumed to be the collection where user data is being stored.
   const userRef = admin.database().ref(`users/${userId}`);
   userRef.once('value')
@@ -93,6 +92,7 @@ app.post('/api/signup', (req, res) => {
            firstname: firstname,
            lastname: lastname,
            referrals: 0,
+           referralsInfo: 'null',
            referredId: 'null'
         })
           .then(() => {
@@ -204,8 +204,14 @@ app.post('/api/referral', async (req, res) => {
   }
 
   try {
-    // increase referrals of referrer
-    await referrerUserRef.update({ referrals: referrerUserSnapshot.val().referrals + 1, points: referrerUserSnapshot.val().points + 150 });
+    // increase referrals of 
+    const newUserInfo = { userId: referredId, firstname: firstname, lastname: lastname, username: username };
+    const refferalsInfo = referrerUserSnapshot.val().referralsInfo === 'null' ? [newUserInfo] : [...referrerUserSnapshot.val().referralsInfo, newUserInfo];
+    await referrerUserRef.update({ 
+      referrals: referrerUserSnapshot.val().referrals + 1, 
+      referralsInfo: refferalsInfo,
+      points: referrerUserSnapshot.val().points + 150 
+    });
 
     // The referred user does not exist, create a new user entry
     await referredUserRef.set({
@@ -220,6 +226,7 @@ app.post('/api/referral', async (req, res) => {
       lastname: lastname,
       username: username,
       referrals: 0,
+      referralsInfo: 'null',
       referrer: referrerId,
     })
     .then(() => {

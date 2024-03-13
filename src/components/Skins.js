@@ -3,17 +3,17 @@ import { Modal, Backdrop, Fade, Button, Typography, Grid, Paper } from '@mui/mat
 import { styled, keyframes } from '@mui/system';
 import axios from 'axios';
 import CloseIcon from '@mui/icons-material/Close';
-import GuardCoin from '../images/Guard.png';
+import BattleCoin from '../images/Battle.png';
 import defaultCoin from '../images/Coin.png';
-import AlmondCoin from '../images/Almond.png';
-import diamondCoin from '../images/Diamond.png';
+import GuardCoin from '../images/Guard.png';
+import OrangeCoin from '../images/Orange.png';
 import { message } from 'antd';
 
 const images = [
   { name: 'Default Skin', price: 'Free', src: defaultCoin },
-  { name: 'Almond Skin', price: '500 Points', src: AlmondCoin },
-  { name: 'Diamond Skin', price: '2200 Points', src: diamondCoin },
-  { name: 'Guard Skin', price: '5000 Points', src: GuardCoin },
+  { name: 'Orange Skin', price: '500 Points', src: OrangeCoin },
+  { name: 'Guard Skin', price: '2200 Points', src: GuardCoin },
+  { name: 'Battle Skin', price: '5000 Points', src: BattleCoin },
   // Add more images as needed
 ];
 
@@ -50,7 +50,7 @@ const SkinsModal = ({ open, handleClose, userData, userSkins, userCurrentSkin })
     // get skin id 
     const skinID = event.target.id;
     setIsLoading(true);
-    axios.post(`https://wagmibot-solana.site/api/buy-skin`, {
+    axios.post(`https://app.sendchain.io/api/buy-skin`, {
       userId: userData.id,
       skinID: Number(skinID)
     })
@@ -61,7 +61,7 @@ const SkinsModal = ({ open, handleClose, userData, userSkins, userCurrentSkin })
     
     .catch(error => {
       if  (error.response.data.error === "SkinID already exists") {
-        axios.post(`https://wagmibot-solana.site/api/change-skin`, {
+        axios.post(`https://app.sendchain.io/api/change-skin`, {
           userId: userData.id,
           skinID: Number(skinID)
         }).then(response => {
