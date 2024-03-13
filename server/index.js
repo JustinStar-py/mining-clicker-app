@@ -1,5 +1,5 @@
 var admin = require("firebase-admin");
-var serviceAccount = require("./firebase-adminsdk.json");
+var serviceAccount = require("./adminsdk-firebase.json");
 const { bot } = require('./bot');
 const { transfer } = require('./cryptoOperations-bsc');
 
